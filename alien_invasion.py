@@ -14,8 +14,9 @@ class AlienInvasion:
         self.settings = Settings()
         # 赋给属性self.screen 的对象是一个surface。
         # 在Pygame中，surface是屏幕的一部分，用于显示游戏元素。
-        self.screen = pygame.display.set_mode((self.settings.screen_width,
-                                                self.settings.screen_height))
+        self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+        self.settings.screen_width = self.screen.get_rect().width
+        self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption("Alien Invasion")
 
         self.ship = Ship(self)
@@ -23,17 +24,50 @@ class AlienInvasion:
     def run_game(self):
         """开始游戏的主循环"""
         while True:
-            # 监视键盘和鼠标事件。
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
+            self._check_events()
+            self.ship.update()
+            self._update_screen()
             
-            #每次循环时都重绘屏幕。
-            self.screen.fill(self.settings.bg_color)
-            self.ship.blitme()
+    
+    def _check_events(self):
+        """响应按键和鼠标事件"""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                self._check_keydown_events(event)
+            elif event.type == pygame.KEYUP:
+                self._check_keyup_events(event)
 
-            # 让最近绘制的屏幕可见。
-            pygame.display.flip()
+    def _check_keydown_events(self, events):
+        """响应按键"""
+        if events.key == pygame.K_RIGHT:
+            # 向右移动飞船
+            self.ship.moving_right = True
+        elif events.key ==pygame.K_LEFT:
+            # 向左移动飞船
+            self.ship.moving_left = True
+        elif events.key == pygame.K_q:
+            # 按q退出
+            sys.exit()
+    
+    def _check_keyup_events(self, events):
+        """响应松开"""
+        if events.key == pygame.K_RIGHT:
+            self.ship.moving_right = False
+        elif events.key == pygame.K_LEFT:
+            self.ship.moving_left = False
+
+    def _update_screen(self):
+        """更新屏幕上的图像，并切换到新屏幕。"""
+        #每次循环时都重绘屏幕。
+        self.screen.fill(self.settings.bg_color)
+        self.ship.blitme()
+
+        # 让最近绘制的屏幕可见。
+        pygame.display.flip()
+
+
 
 if __name__ == '__main__':
     # 创建游戏实例并运行游戏。
